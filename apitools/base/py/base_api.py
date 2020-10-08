@@ -21,6 +21,8 @@ import contextlib
 import datetime
 import logging
 import pprint
+import os
+import threading
 
 
 import six
@@ -701,6 +703,7 @@ class BaseApiService(object):
         http_request = self.PrepareHttpRequest(
             method_config, request, global_params, upload, upload_config,
             download)
+        logging.debug('[%s] PrepareHttpRequest done.' % threading.get_ident())
 
         # TODO(craigcitro): Make num_retries customizable on Transfer
         # objects, and pass in self.__client.num_retries when initializing
@@ -713,6 +716,7 @@ class BaseApiService(object):
         if upload is not None:
             http_response = upload.InitializeUpload(
                 http_request, client=self.client)
+            logging.debug('[%s] Upload initialization done' % threading.get_ident())
         if http_response is None:
             http = self.__client.http
             if upload and upload.bytes_http:
@@ -725,8 +729,10 @@ class BaseApiService(object):
                 opts['check_response_func'] = self.__client.check_response_func
             if self.__client.retry_func:
                 opts['retry_func'] = self.__client.retry_func
+            logging.debug('[%s] Going to make the request' % threading.get_ident())
             http_response = http_wrapper.MakeRequest(
                 http, http_request, **opts)
+            logging.debug('[%s] Received response. Going to call ProcessHttpResponse' % threading.get_ident())
 
         return self.ProcessHttpResponse(method_config, http_response, request)
 

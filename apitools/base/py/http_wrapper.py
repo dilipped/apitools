@@ -25,6 +25,7 @@ import contextlib
 import logging
 import socket
 import time
+import threading
 
 import httplib2
 import six
@@ -337,6 +338,7 @@ def MakeRequest(http, http_request, retries=7, max_retry_wait=60,
       A Response object.
 
     """
+    logging.debug('[%s] Inside http_wrapper.MakeRequest. Request %s' % (threading.get_ident(), http_request))
     retry = 0
     first_req_time = time.time()
     # Provide compatibility for breaking change in httplib2 0.16.0+:
@@ -345,12 +347,14 @@ def MakeRequest(http, http_request, retries=7, max_retry_wait=60,
         http.redirect_codes = set(http.redirect_codes) - {308}
     while True:
         try:
+            logging.debug('[%s] Making request' % threading.get_ident())
             return _MakeRequestNoRetry(
                 http, http_request, redirections=redirections,
                 check_response_func=check_response_func)
         # retry_func will consume the exception types it handles and raise.
         # pylint: disable=broad-except
         except Exception as e:
+            logging.debug('[%s] Exception occurred.' % threading.get_ident())
             retry += 1
             if retry >= retries:
                 raise
@@ -394,6 +398,7 @@ def _MakeRequestNoRetry(http, http_request, redirections=5,
     # Custom printing only at debuglevel 4
     new_debuglevel = 4 if httplib2.debuglevel == 4 else 0
     with _Httplib2Debuglevel(http_request, new_debuglevel, http=http):
+        logging.debug('[%s] Inside MakeRequestNoRetry' % threading.get_ident())
         info, content = http.request(
             str(http_request.url), method=str(http_request.http_method),
             body=http_request.body, headers=http_request.headers,
