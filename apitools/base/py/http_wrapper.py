@@ -397,12 +397,20 @@ def _MakeRequestNoRetry(http, http_request, redirections=5,
 
     # Custom printing only at debuglevel 4
     new_debuglevel = 4 if httplib2.debuglevel == 4 else 0
-    with _Httplib2Debuglevel(http_request, new_debuglevel, http=http):
-        logging.debug('[%s] Inside MakeRequestNoRetry' % threading.get_ident())
-        info, content = http.request(
-            str(http_request.url), method=str(http_request.http_method),
-            body=http_request.body, headers=http_request.headers,
-            redirections=redirections, connection_type=connection_type)
+    new_debuglevel = 4
+    # from gslib.utils.boto_util import GetNewHttp
+    httplib2.debuglevel = 4
+    # newhttp = httplib2.Http()
+    # newhttp.credentials = http.credentials
+    # with _Httplib2Debuglevel(http_request, new_debuglevel, http=http):
+    logging.debug('[%s] Inside MakeRequestNoRetry' % threading.get_ident())
+    logging.debug('[%s] http object %s' % (threading.get_ident(), http))
+    info, content = http.request(
+        str(http_request.url), method=str(http_request.http_method),
+        body=http_request.body, headers=http_request.headers,
+        redirections=redirections, connection_type=connection_type)
+    logging.debug('[%s] http %s request completed.' % (threading.get_ident(), http))
+
 
     if info is None:
         raise exceptions.RequestError()

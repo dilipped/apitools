@@ -720,6 +720,7 @@ class BaseApiService(object):
         if http_response is None:
             http = self.__client.http
             if upload and upload.bytes_http:
+                logging.debug('[%s] http instance from Upload.' % threading.get_ident())
                 http = upload.bytes_http
             opts = {
                 'retries': self.__client.num_retries,
